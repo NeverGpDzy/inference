@@ -1,13 +1,3 @@
-import array
-import json
-import os
-import sys
-import torch
-import transformers
-import mlperf_loadgen as lg
-import numpy as np
-from transformers import BertConfig, BertForQuestionAnswering
-from squad_QSL import get_squad_QSL
 import torch.quantization
 
 class BERT_PyTorch_SUT():
@@ -30,7 +20,7 @@ class BERT_PyTorch_SUT():
             vocab_size=config_json["vocab_size"])
 
         self.network = args.network
-        self.dev = torch.device("cpu")  # 使用CPU进行推理
+        self.dev = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
         self.version = transformers.__version__
 
         print("Loading PyTorch model...")
@@ -38,7 +28,7 @@ class BERT_PyTorch_SUT():
         self.model.to(self.dev)
         self.model.eval()
         model_file = os.environ.get("ML_MODEL_FILE_WITH_PATH", "build/data/bert_tf_v1_1_large_fp32_384_v2/model.pytorch")
-        self.model.load_state_dict(torch.load(model_file, map_location=self.dev), strict=False)
+        self.model.load_state_dict(torch.load(model_file), strict=False)
 
         # 量化模型
         self.model.qconfig = torch.quantization.get_default_qconfig('fbgemm')
@@ -53,7 +43,6 @@ class BERT_PyTorch_SUT():
 
     def issue_queries(self, query_samples):
         batch_size = 64  # 设置批量大小为64
-
         for i in range(0, len(query_samples), batch_size):
             batch_samples = query_samples[i:i + batch_size]
             eval_features = [self.qsl.get_features(sample.index) for sample in batch_samples]
@@ -108,5 +97,4 @@ class BERT_PyTorch_SUT():
         print("Finished destroying SUT.")
 
 def get_pytorch_sut(args):
-    torch.set_num_threads(16)  # 设置使用的线程数为16
     return BERT_PyTorch_SUT(args)
