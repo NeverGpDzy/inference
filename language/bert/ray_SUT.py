@@ -37,7 +37,7 @@ from ray.util.actor_pool import ActorPool
 # Adjustable Parameters
 BATCH_SIZE = 32    # Note. num_samples (called "test_query_count" in CM) must be a multiple of batch_size
 
-@ray.remote(num_cpus=1,num_gpus=1)
+@ray.remote(num_cpus=16,num_gpus=1)
 class TorchPredictor:
     def __init__(self, config_json, model_file, batch_size):
         print("init", os.getpid(), torch.cuda.device_count())
