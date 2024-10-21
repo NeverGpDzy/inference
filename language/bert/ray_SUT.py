@@ -35,7 +35,7 @@ from ray.util.actor_pool import ActorPool
 
 
 # Adjustable Parameters
-BATCH_SIZE = 16    # Note. num_samples (called "test_query_count" in CM) must be a multiple of batch_size
+BATCH_SIZE = 32    # Note. num_samples (called "test_query_count" in CM) must be a multiple of batch_size
 
 @ray.remote(num_cpus=1,num_gpus=1)
 class TorchPredictor:
